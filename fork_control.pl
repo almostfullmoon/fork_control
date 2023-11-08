@@ -10,10 +10,12 @@
 use feature ':all';
 
 use Getopt::Long;
-use vars qw($in_run $max_threads $help);
+use vars qw($in_run $max_threads $no_warning $help);
 GetOptions(
-    "i:s" => \$in_run,
+    "i=s" => \$in_run,
     "m:s" => \$max_threads,
+    "n" => \$no_warning,
+
     "h" => \$help
 );
 &HELP if ($help);
@@ -24,6 +26,7 @@ sub HELP{
     print STDOUT "选项\n";
     say STDOUT "\t-i : 输入sh文件";
     say STDOUT "\t-m : 最大运行进程数，默认为3";
+    say STDOUT "\t-n : 无需参数，开启此条目可以无视进程数过多的警告";
     exit;
 }
 
@@ -31,7 +34,7 @@ use threads;
 use Thread::Semaphore;
 
 $max_threads||=3;
-if($max_threads > 10){
+if($max_threads > 10 && $no_warning == 0){
     say "注意：设置进程数大于 10 ，真的要设置这么多吗？";
     say "输入 y 确认以继续进行,或者输入任意数字修改进程数,否则将被修正为5";
     my $jud=<STDIN>;
@@ -91,5 +94,5 @@ sub Waitquit{
         print "\r",$run_num-$max_cope,"/",$#run_file+1;
     }
     $|=0;
-    print "\n所有 ",$#run_file+1," 条任务都已经结束\n";
+    print "\n所有 ",$#run_file+1," 条任务都已经结束\n" if($no_warning == 0);
 }
